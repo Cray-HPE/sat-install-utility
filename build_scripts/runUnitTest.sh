@@ -1,4 +1,6 @@
-# Top-level requirements for sat-install-utility
+#!/usr/bin/env sh
+# Run nosetests with the options that are in setup.cfg
+#
 # (C) Copyright 2021 Hewlett Packard Enterprise Development LP.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -18,7 +20,9 @@
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-nexusctl @ git+https://stash.us.cray.com/scm/ssa/nexusctl.git@main
-kubernetes
-pyyaml
-urllib3
+
+
+# TODO: It is not clear what the difference is between runCoverage.sh and
+# runUnitTest.sh. We run unit tests and compute coverage here. We'll have
+# to figure out how to actually do something with our coverage data.
+nosetests
