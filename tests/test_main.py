@@ -109,6 +109,7 @@ class TestActivateUninstall(unittest.TestCase):
         product = self.fake_products[0]
         product.uninstall_hosted_repo.assert_called_once_with(self.mock_nexus_api, 'sle-15sp3')
         product.uninstall_docker_image.assert_called_once_with(self.mock_docker_api)
+        product.remove_from_product_catalog.assert_called_once_with('cray-product-catalog', 'services')
 
     def test_uninstall_without_docker_image_removal(self):
         """Test a successful uninstall when a Docker image is not removed."""
@@ -135,6 +136,7 @@ class TestActivateUninstall(unittest.TestCase):
             f'used by the following other product versions: {str(shared_image_product)}'
         )
         self.mock_print.assert_called_with(expected_print_output)
+        product.remove_from_product_catalog.assert_called_once_with('cray-product-catalog', 'services')
 
     def test_activate_success(self):
         """Test a successful activation."""
