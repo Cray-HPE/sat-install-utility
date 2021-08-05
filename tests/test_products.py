@@ -106,10 +106,27 @@ class TestInstalledProductVersion(unittest.TestCase):
     def setUp(self):
         """Set up mocks."""
         self.installed_product_version = InstalledProductVersion(
-            'sat', '2.0.0', {'component_versions': {'sat': '1.0.0'}}
+            'sat',
+            '2.2.0',
+            {
+                'component_versions': {
+                    'docker': {
+                        'cray/cray-sat': '3.9.0',
+                        'cray/sat-cfs-install': '1.2.0',
+                        'cray/sat-install-utility': '3.9.0',
+                    },
+                    'rpm': {
+                        'cray-sat-podman': '1.5.0'
+                    }
+                }
+            }
         )
+        self.legacy_installed_product_version = InstalledProductVersion(
+            'sat', '1.0.1', {'component_versions': {'sat': '1.0.0'}}
+        )
+
         self.mock_nexus_api = Mock()
-        self.mock_group_members = ['sat-3.0.0-sle-15sp3', 'sat-2.0.0-sle-15sp3', 'sat-1.0.1-sle-15sp3']
+        self.mock_group_members = ['sat-3.0.0-sle-15sp3', 'sat-2.2.0-sle-15sp3', 'sat-1.0.1-sle-15sp3']
         self.mock_group_repo = Mock()
         self.mock_group_repo.group.member_names = self.mock_group_members
         # This is slightly incorrect as NexusApi.repos.list may also return a
@@ -123,23 +140,46 @@ class TestInstalledProductVersion(unittest.TestCase):
         """Stop patches."""
         patch.stopall()
 
-    def test_docker_image_version(self):
-        """Test getting the Docker image version."""
-        expected_docker_image_version = '1.0.0'
+    def test_docker_images(self):
+        """Test getting the Docker images."""
+        expected_docker_image_versions = {'cray/cray-sat': '3.9.0',
+                                          'cray/sat-cfs-install': '1.2.0',
+                                          'cray/sat-install-utility': '3.9.0'}
         self.assertEqual(
-            expected_docker_image_version, self.installed_product_version.docker_image_version
+            expected_docker_image_versions, self.installed_product_version.docker_images
         )
 
-    def test_docker_image_name(self):
-        """Test getting the Docker image name."""
-        expected_docker_image_name = 'cray/cray-sat'
+    def test_legacy_docker_images(self):
+        """Test getting the Docker images from an 'old'-style product catalog entry."""
+        expected_docker_image_versions = {'cray/cray-sat': '1.0.0'}
         self.assertEqual(
-            expected_docker_image_name, self.installed_product_version.docker_image_name
+            expected_docker_image_versions, self.legacy_installed_product_version.docker_images
         )
+
+    def test_no_docker_images(self):
+        """Test a product that has an empty dictionary under the 'docker' key returns an empty dictionary."""
+        product_with_no_docker_images = InstalledProductVersion(
+            'sat', '0.9.9', {'component_versions': {'docker': {}}}
+        )
+        self.assertEqual(product_with_no_docker_images.docker_images, {})
+
+    def test_no_docker_images_null(self):
+        """Test a product that has None under the 'docker' key returns an empty dictionary."""
+        product_with_no_docker_images = InstalledProductVersion(
+            'sat', '0.9.9', {'component_versions': {'docker': None}}
+        )
+        self.assertEqual(product_with_no_docker_images.docker_images, {})
+
+    def test_no_docker_images_empty_list(self):
+        """Test a product that has an empty list under the 'docker' key returns an empty dictionary."""
+        product_with_no_docker_images = InstalledProductVersion(
+            'sat', '0.9.9', {'component_versions': {'docker': []}}
+        )
+        self.assertEqual(product_with_no_docker_images.docker_images, {})
 
     def test_str(self):
         """Test the string representation of InstalledProductVersion."""
-        expected_str = 'sat-2.0.0'
+        expected_str = 'sat-2.2.0'
         self.assertEqual(
             expected_str, str(self.installed_product_version)
         )
@@ -153,7 +193,7 @@ class TestInstalledProductVersion(unittest.TestCase):
 
     def test_get_hosted_repo_name(self):
         """Test getting a hosted repo name for an InstalledProductVersion."""
-        expected_hosted_repo_name = 'sat-2.0.0-sle-15sp3'
+        expected_hosted_repo_name = 'sat-2.2.0-sle-15sp3'
         self.assertEqual(
             expected_hosted_repo_name, self.installed_product_version.get_hosted_repo_name('sle-15sp3')
         )
@@ -161,12 +201,12 @@ class TestInstalledProductVersion(unittest.TestCase):
     def test_uninstall_hosted_repo(self):
         """Test uninstalling a hosted repo for an InstalledProductVersion."""
         self.installed_product_version.uninstall_hosted_repo(self.mock_nexus_api, 'sle-15sp3')
-        self.mock_nexus_api.repos.delete.assert_called_once_with('sat-2.0.0-sle-15sp3')
+        self.mock_nexus_api.repos.delete.assert_called_once_with('sat-2.2.0-sle-15sp3')
 
     def test_uninstall_docker_image(self):
         """Test uninstalling a Docker image for an InstalledProductVersion."""
-        self.installed_product_version.uninstall_docker_image(self.mock_docker_api)
-        self.mock_docker_api.delete_image.assert_called_once_with('cray/cray-sat', '1.0.0')
+        self.installed_product_version.uninstall_docker_image('foo', 'bar', self.mock_docker_api)
+        self.mock_docker_api.delete_image.assert_called_once_with('foo', 'bar')
 
     def test_activate_hosted_repo(self):
         """Test activating a product version's hosted repository."""
@@ -176,7 +216,7 @@ class TestInstalledProductVersion(unittest.TestCase):
             self.mock_group_repo.online,
             self.mock_group_repo.storage.blobstore_name,
             self.mock_group_repo.storage.strict_content_type_validation,
-            member_names=('sat-2.0.0-sle-15sp3', 'sat-3.0.0-sle-15sp3', 'sat-1.0.1-sle-15sp3')
+            member_names=('sat-2.2.0-sle-15sp3', 'sat-3.0.0-sle-15sp3', 'sat-1.0.1-sle-15sp3')
         )
 
     def test_remove_from_product_catalog(self):
