@@ -22,8 +22,9 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
+from subprocess import CalledProcessError
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from yaml import safe_dump
 
@@ -115,6 +116,12 @@ class TestInstalledProductVersion(unittest.TestCase):
         # hosted repo, but good enough for the test.
         self.mock_nexus_api.repos.list.return_value = [self.mock_group_repo]
         self.mock_docker_api = Mock()
+        self.mock_environ = patch('sat_install_utility.products.os.environ').start()
+        self.mock_check_output = patch('sat_install_utility.products.subprocess.check_output').start()
+
+    def tearDown(self):
+        """Stop patches."""
+        patch.stopall()
 
     def test_docker_image_version(self):
         """Test getting the Docker image version."""
@@ -162,6 +169,7 @@ class TestInstalledProductVersion(unittest.TestCase):
         self.mock_docker_api.delete_image.assert_called_once_with('cray/cray-sat', '1.0.0')
 
     def test_activate_hosted_repo(self):
+        """Test activating a product version's hosted repository."""
         self.installed_product_version.activate_hosted_repo(self.mock_nexus_api, 'sle-15sp3')
         self.mock_nexus_api.repos.raw_group.update.assert_called_once_with(
             self.mock_group_repo.name,
@@ -170,6 +178,27 @@ class TestInstalledProductVersion(unittest.TestCase):
             self.mock_group_repo.storage.strict_content_type_validation,
             member_names=('sat-2.0.0-sle-15sp3', 'sat-3.0.0-sle-15sp3', 'sat-1.0.1-sle-15sp3')
         )
+
+    def test_remove_from_product_catalog(self):
+        """Test removing a version from the product catalog."""
+        self.installed_product_version.remove_from_product_catalog('mock-name', 'mock-namespace')
+        self.mock_environ.update.assert_called_once_with({
+            'PRODUCT': self.installed_product_version.name,
+            'PRODUCT_VERSION': self.installed_product_version.version,
+            'CONFIG_MAP': 'mock-name',
+            'CONFIG_MAP_NS': 'mock-namespace'
+        })
+        self.mock_check_output.assert_called_once_with(['catalog_delete.py'])
+
+    def test_remove_from_product_catalog_fail(self):
+        """Test removing a version from the product catalog when the subcommand fails."""
+        expected_err_regex = (
+            f'Error removing {self.installed_product_version.name}-'
+            f'{self.installed_product_version.version} from product catalog'
+        )
+        self.mock_check_output.side_effect = CalledProcessError(1, 'catalog_delete.py')
+        with self.assertRaisesRegex(ProductInstallException, expected_err_regex):
+            self.installed_product_version.remove_from_product_catalog('mock-name', 'mock-namespace')
 
 
 if __name__ == '__main__':

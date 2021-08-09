@@ -22,6 +22,8 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
+import os
+import subprocess
 
 from kubernetes.client.rest import ApiException
 from urllib3.exceptions import MaxRetryError
@@ -243,6 +245,38 @@ class InstalledProductVersion:
                 raise ProductInstallException(
                     f'Failed to remove image {docker_image_short_name}: {err}'
                 )
+
+    def remove_from_product_catalog(self, config_map_name, config_map_namespace):
+        """Remove this product version's entry from the product catalog.
+
+        This function uses the catalog_delete.py script provided by
+        cray-product-catalog.
+
+        Args:
+            config_map_name (str): The name of the product catalog config map.
+            config_map_namespace (str): The namespace of the product catalog
+                config map.
+
+        Returns:
+            None
+
+        Raises:
+            ProductInstallException: If an error occurred removing the entry.
+        """
+        # Use os.environ so that PATH and VIRTUAL_ENV are used
+        os.environ.update({
+            'PRODUCT': self.name,
+            'PRODUCT_VERSION': self.version,
+            'CONFIG_MAP': config_map_name,
+            'CONFIG_MAP_NS': config_map_namespace
+        })
+        try:
+            subprocess.check_output(['catalog_delete.py'])
+            print(f'Deleted {self.name}-{self.version} from product catalog.')
+        except subprocess.CalledProcessError as err:
+            raise ProductInstallException(
+                f'Error removing {self.name}-{self.version} from product catalog: {err}'
+            )
 
     @staticmethod
     def _get_repo_by_name(nexus_api, name):

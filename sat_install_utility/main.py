@@ -138,6 +138,10 @@ def uninstall(name, version, dist, nexus_api, docker_api):
     else:
         product_to_uninstall.uninstall_docker_image(docker_api)
 
+    product_to_uninstall.remove_from_product_catalog(
+        PRODUCT_CATALOG_CONFIG_MAP_NAME, PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE
+    )
+
 
 def activate(name, version, dist, nexus_api):
     """Activate a version of a product.
