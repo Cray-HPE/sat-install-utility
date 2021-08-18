@@ -2,7 +2,6 @@ cachetools==4.2.2
 certifi==2021.5.30
 charset-normalizer==2.0.3
 google-auth==1.34.0
-cray-product-catalog @ git+https://stash.us.cray.com/scm/~ekamin/cray-product-catalog.git@b45da1b08b7c45e4e504420b411108d0c31d8695
 idna==3.2
 kubernetes==11.0.0
 nexusctl @ git+https://stash.us.cray.com/scm/ssa/nexusctl.git@583e6b2f65d463cf95e4617118837ab2e8ddba5c
