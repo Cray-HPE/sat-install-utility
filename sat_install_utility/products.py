@@ -144,27 +144,64 @@ class InstalledProductVersion:
         return f'{self.name}-{self.version}'
 
     @property
-    def docker_image_version(self):
-        """str: The Docker image version associated with this product version, or None."""
-        # TODO(CRAYSAT-1033):
-        # Assumes that only one container image exists per product. In the
-        # future, the component_versions data should be updated so that it
-        # contains a sub-entry only of Docker images, such that every entry
-        # can be assumed to be a Docker image version that should be removed
-        # on uninstall if not used by another version of the product, e.g.:
-        #   component_versions:
-        #     docker:
-        #       sat: 3.7.0
-        #       sat-cfs-install: 1.0.2
-        #       sat-install-utility: 1.0.5
+    def docker_images(self):
+        """Get Docker images associated with this InstalledProductVersion.
+
+        Returns:
+            A dictionary whose keys are Docker image names and whose values are
+                docker image versions.
+        """
+        component_data = self.data.get(COMPONENT_VERSIONS_PRODUCT_MAP_KEY, {})
+
+        # If there is no 'docker' key under the component data, assume that there
+        # is a single docker image named cray/cray-PRODUCT whose version is the
+        # value of the PRODUCT key under component_versions.
+        if 'docker' not in component_data:
+            return {self._deprecated_docker_image_name: self._deprecated_docker_image_version}
+
+        return component_data['docker'] or {}
+
+    @property
+    def _deprecated_docker_image_version(self):
+        """str: The Docker image version associated with this product version, or None.
+
+        Note: this assumes that the 'component_versions' data is structured as follows:
+        component_versions:
+            product_name: docker_image_version
+
+        Newer versions will structure the 'component_versions' data as follows:
+        component_versions:
+            product_name:
+                docker:
+                    docker_image_name_1: docker_image_version
+                    docker_image_name_2: docker_image_version
+
+        This method should only be used if the installed version does not have a
+        component_versions->product_name->docker key.
+        """
         return self.data.get(COMPONENT_VERSIONS_PRODUCT_MAP_KEY, {}).get(self.name)
 
     @property
-    def docker_image_name(self):
-        """str: The Docker image name associated with this product version."""
-        # TODO(CRAYSAT-1033):
-        # Assumes that the product has one image, and it is named
-        # cray/cray-{product} (see above).
+    def _deprecated_docker_image_name(self):
+        """str: The Docker image name associated with this product version.
+
+        Note: this assumes that the 'component_versions' data is structured as follows:
+        component_versions:
+            product_name: docker_image_version
+
+        It also assumes that the name of the singular docker image is
+        'cray/cray-<product_name'.
+
+        Newer versions will structure the 'component_versions' data as follows:
+        component_versions:
+            product_name:
+                docker:
+                    docker_image_name_1: docker_image_version
+                    docker_image_name_2: docker_image_version
+
+        This method should only be used if the installed version does not have a
+        component_versions->product_name->docker key.
+        """
         return f'cray/cray-{self.name}'
 
     def get_group_repo_name(self, dist):
@@ -219,10 +256,13 @@ class InstalledProductVersion:
                     f'Failed to remove repository {hosted_repo_name}: {err}'
                 )
 
-    def uninstall_docker_image(self, docker_api):
+    @staticmethod
+    def uninstall_docker_image(docker_image_name, docker_image_version, docker_api):
         """Remove the Docker image associated with this product version.
 
         Args:
+            docker_image_name (str): The name of the Docker image to uninstall.
+            docker_image_version (str): The version of the Docker image to uninstall.
             docker_api (DockerApi): The nexusctl Docker API to interface with
                 the Docker registry.
 
@@ -232,10 +272,11 @@ class InstalledProductVersion:
         Raises:
             ProductInstallException: If an error occurred removing the image.
         """
-        docker_image_short_name = f'{self.docker_image_name}:{self.docker_image_version}'
+        # TODO: can we do something cleaner than taking the name/version as params?
+        docker_image_short_name = f'{docker_image_name}:{docker_image_version}'
         try:
             docker_api.delete_image(
-                self.docker_image_name, self.docker_image_version
+                docker_image_name, docker_image_version
             )
             print(f'Removed Docker image {docker_image_short_name}')
         except HTTPError as err:

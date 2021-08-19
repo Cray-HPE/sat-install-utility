@@ -124,19 +124,23 @@ def uninstall(name, version, dist, nexus_api, docker_api):
 
     product_to_uninstall.uninstall_hosted_repo(nexus_api, dist)
 
-    # TODO(CRAYSAT-1033): Will have to be modified slightly for multiple Docker images per product
-    other_products_with_same_docker_image = [
-        product for product in other_products
-        if product.docker_image_name == product_to_uninstall.docker_image_name
-        and product.docker_image_version == product_to_uninstall.docker_image_version
-    ]
-    if other_products_with_same_docker_image:
-        print(f'Not removing Docker image '
-              f'{product_to_uninstall.docker_image_name}:{product_to_uninstall.docker_image_version} '
-              f'used by the following other product versions: '
-              f'{", ".join(str(p) for p in other_products_with_same_docker_image)}')
-    else:
-        product_to_uninstall.uninstall_docker_image(docker_api)
+    images_to_remove = product_to_uninstall.docker_images
+
+    # For each image to remove, check if it is shared by any other products.
+    for image_name, image_version in images_to_remove.items():
+        other_products_with_same_docker_image = [
+            other_product for other_product in other_products
+            if any([
+                other_image_name == image_name and other_image_version == image_version
+                for other_image_name, other_image_version in other_product.docker_images.items()
+            ])
+        ]
+        if other_products_with_same_docker_image:
+            print(f'Not removing Docker image {image_name}:{image_version} '
+                  f'used by the following other product versions: '
+                  f'{", ".join(str(p) for p in other_products_with_same_docker_image)}')
+        else:
+            product_to_uninstall.uninstall_docker_image(image_name, image_version, docker_api)
 
     product_to_uninstall.remove_from_product_catalog(
         PRODUCT_CATALOG_CONFIG_MAP_NAME, PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE
