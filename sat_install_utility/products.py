@@ -381,21 +381,13 @@ class InstalledProductVersion:
             raise ProductInstallException(
                 f'Unable to identify group repository for version {self.version} of {self.name}: {err}'
             )
-        # Put hosted repo first in the list, making it 'active'.
-        members = [
-            str(name)
-            for name in group_repo.group.member_names
-            if name != hosted_repo_name
-        ]
-        members.insert(0, hosted_repo_name)
-
         try:
             nexus_api.repos.raw_group.update(
                 group_repo.name,
                 group_repo.online,
                 group_repo.storage.blobstore_name,
                 group_repo.storage.strict_content_type_validation,
-                member_names=tuple(members)
+                member_names=(hosted_repo_name,)
             )
             print(f'Repository {hosted_repo_name} is now the default in {group_repo_name}.')
         except HTTPError as err:

@@ -216,7 +216,7 @@ class TestInstalledProductVersion(unittest.TestCase):
             self.mock_group_repo.online,
             self.mock_group_repo.storage.blobstore_name,
             self.mock_group_repo.storage.strict_content_type_validation,
-            member_names=('sat-2.2.0-sle-15sp3', 'sat-3.0.0-sle-15sp3', 'sat-1.0.1-sle-15sp3')
+            member_names=('sat-2.2.0-sle-15sp3',)
         )
 
     def test_remove_from_product_catalog(self):
