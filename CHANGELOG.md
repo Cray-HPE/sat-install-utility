@@ -33,6 +33,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   so that multiple Docker images can be associated with a single product
   version. Maintains backwards compatibility with previous ``cray-product-catalog``
   data format.
+- Changed the behavior of the "activate" action from re-ordering group
+  repository members to making the active product version's hosted repository
+  the sole member of the group repository.
 
 ## [1.1.0] - 2021-07-26
 
