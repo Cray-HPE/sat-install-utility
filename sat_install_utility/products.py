@@ -43,10 +43,11 @@ class ProductCatalog:
     """A collection of installed product versions.
 
     Attributes:
+        name: The product catalog Kubernetes config map name.
+        namespace: The product catalog Kubernetes config map namespace.
         products ([InstalledProductVersion]): A list of installed product
             versions.
     """
-
     def __init__(self, name, namespace, k8s_api):
         """Create the ProductCatalog object.
 
@@ -59,6 +60,8 @@ class ProductCatalog:
         Raises:
             ProductInstallException: if reading the config map failed.
         """
+        self.name = name
+        self.namespace = namespace
         try:
             config_map = k8s_api.read_namespaced_config_map(name, namespace)
         except MaxRetryError as err:
@@ -87,7 +90,7 @@ class ProductCatalog:
                 f'Failed to load ConfigMap data: {err}'
             )
 
-    def get_matching_products(self, name, version):
+    def get_product(self, name, version):
         """Get the InstalledProductVersion matching the given name/version.
 
         Args:
@@ -95,9 +98,7 @@ class ProductCatalog:
             version (str): The product version.
 
         Returns:
-            tuple: A 2-tuple, where the first element is the matching
-                InstalledProductVersion and the second is a list of all
-                other InstalledProductVersion objects.
+            An InstalledProductVersion with the given name and version.
 
         Raises:
             ProductInstallException: If there is more than one matching
@@ -106,10 +107,6 @@ class ProductCatalog:
         matching_products = [
             product for product in self.products
             if product.name == name and product.version == version
-        ]
-        other_products = [
-            product for product in self.products
-            if product.name != name or product.version != version
         ]
         if not matching_products:
             raise ProductInstallException(
@@ -120,7 +117,78 @@ class ProductCatalog:
                 f'Multiple installed products with name {name} and version {version}.'
             )
 
-        return matching_products[0], other_products
+        return matching_products[0]
+
+    def remove_product_docker_images(self, name, version, docker_api):
+        """Remove a product's Docker images.
+
+        This function will only remove images that are not used by another
+        product in the catalog. For images that are used by another
+
+        Args:
+            name (str): The name of the product for which to remove docker images.
+            version (str): The version of the product for which to remove docker images.
+            docker_api (DockerApi): The nexusctl Docker API to interface with
+                the Docker registry.
+
+        Returns:
+            None
+        """
+        product = self.get_product(name, version)
+
+        images_to_remove = product.docker_images
+        other_products = [
+            p for p in self.products
+            if p.version != product.version or p.name != product.name
+        ]
+
+        # For each image to remove, check if it is shared by any other products.
+        for image_name, image_version in images_to_remove:
+            other_products_with_same_docker_image = [
+                other_product for other_product in other_products
+                if any([
+                    other_image_name == image_name and other_image_version == image_version
+                    for other_image_name, other_image_version in other_product.docker_images
+                ])
+            ]
+            if other_products_with_same_docker_image:
+                print(f'Not removing Docker image {image_name}:{image_version} '
+                      f'used by the following other product versions: '
+                      f'{", ".join(str(p) for p in other_products_with_same_docker_image)}')
+            else:
+                product.uninstall_docker_image(image_name, image_version, docker_api)
+
+    def remove_product_entry(self, name, version):
+        """Remove this product version's entry from the product catalog.
+
+        This function uses the catalog_delete.py script provided by
+        cray-product-catalog.
+
+        Args:
+            name (str): The name of the product to remove.
+            version (str): The version of the prodcut to remove.
+
+        Returns:
+            None
+
+        Raises:
+            ProductInstallException: If an error occurred removing the entry.
+        """
+        # Use os.environ so that PATH and VIRTUAL_ENV are used
+        os.environ.update({
+            'PRODUCT': name,
+            'PRODUCT_VERSION': version,
+            'CONFIG_MAP': self.name,
+            'CONFIG_MAP_NS': self.namespace,
+            'VALIDATE_SCHEMA': 'true'
+        })
+        try:
+            subprocess.check_output(['catalog_delete.py'])
+            print(f'Deleted {name}-{version} from product catalog.')
+        except subprocess.CalledProcessError as err:
+            raise ProductInstallException(
+                f'Error removing {name}-{version} from product catalog: {err}'
+            )
 
 
 class InstalledProductVersion:
@@ -134,7 +202,6 @@ class InstalledProductVersion:
               'component_versions' key that will point to the respective
               versions of product components, e.g. Docker images.
     """
-
     def __init__(self, name, version, data):
         self.name = name
         self.version = version
@@ -148,8 +215,7 @@ class InstalledProductVersion:
         """Get Docker images associated with this InstalledProductVersion.
 
         Returns:
-            A dictionary whose keys are Docker image names and whose values are
-                docker image versions.
+            A list of tuples of (image_name, image_version)
         """
         component_data = self.data.get(COMPONENT_VERSIONS_PRODUCT_MAP_KEY, {})
 
@@ -157,9 +223,10 @@ class InstalledProductVersion:
         # is a single docker image named cray/cray-PRODUCT whose version is the
         # value of the PRODUCT key under component_versions.
         if 'docker' not in component_data:
-            return {self._deprecated_docker_image_name: self._deprecated_docker_image_version}
+            return [(self._deprecated_docker_image_name, self._deprecated_docker_image_version)]
 
-        return component_data['docker'] or {}
+        return [(component['name'], component['version'])
+                for component in component_data.get('docker') or []]
 
     @property
     def _deprecated_docker_image_version(self):
@@ -229,33 +296,6 @@ class InstalledProductVersion:
         """
         return f'{self.name}-{self.version}-{dist}'
 
-    def uninstall_hosted_repo(self, nexus_api, dist):
-        """Uninstall a version by removing its package repository from Nexus.
-
-        Args:
-            nexus_api (NexusApi): The nexusctl Nexus API to interface with
-                Nexus.
-            dist (str): The name of the distribution associated with the hosted
-                repository.
-
-        Returns:
-            None
-
-        Raises:
-            ProductInstallException: If an error occurred removing the repository.
-        """
-        hosted_repo_name = self.get_hosted_repo_name(dist)
-        try:
-            nexus_api.repos.delete(hosted_repo_name)
-            print(f'Repository {hosted_repo_name} has been removed.')
-        except HTTPError as err:
-            if err.code == 404:
-                print(f'{hosted_repo_name} has already been removed.')
-            else:
-                raise ProductInstallException(
-                    f'Failed to remove repository {hosted_repo_name}: {err}'
-                )
-
     @staticmethod
     def uninstall_docker_image(docker_image_name, docker_image_version, docker_api):
         """Remove the Docker image associated with this product version.
@@ -272,7 +312,6 @@ class InstalledProductVersion:
         Raises:
             ProductInstallException: If an error occurred removing the image.
         """
-        # TODO: can we do something cleaner than taking the name/version as params?
         docker_image_short_name = f'{docker_image_name}:{docker_image_version}'
         try:
             docker_api.delete_image(
@@ -286,38 +325,6 @@ class InstalledProductVersion:
                 raise ProductInstallException(
                     f'Failed to remove image {docker_image_short_name}: {err}'
                 )
-
-    def remove_from_product_catalog(self, config_map_name, config_map_namespace):
-        """Remove this product version's entry from the product catalog.
-
-        This function uses the catalog_delete.py script provided by
-        cray-product-catalog.
-
-        Args:
-            config_map_name (str): The name of the product catalog config map.
-            config_map_namespace (str): The namespace of the product catalog
-                config map.
-
-        Returns:
-            None
-
-        Raises:
-            ProductInstallException: If an error occurred removing the entry.
-        """
-        # Use os.environ so that PATH and VIRTUAL_ENV are used
-        os.environ.update({
-            'PRODUCT': self.name,
-            'PRODUCT_VERSION': self.version,
-            'CONFIG_MAP': config_map_name,
-            'CONFIG_MAP_NS': config_map_namespace
-        })
-        try:
-            subprocess.check_output(['catalog_delete.py'])
-            print(f'Deleted {self.name}-{self.version} from product catalog.')
-        except subprocess.CalledProcessError as err:
-            raise ProductInstallException(
-                f'Error removing {self.name}-{self.version} from product catalog: {err}'
-            )
 
     @staticmethod
     def _get_repo_by_name(nexus_api, name):
@@ -394,3 +401,30 @@ class InstalledProductVersion:
             raise ProductInstallException(
                 f'Failed to activate {hosted_repo_name} in {group_repo_name}: {err}'
             )
+
+    def uninstall_hosted_repo(self, nexus_api, dist):
+        """Remove a version's package repository from Nexus.
+
+        Args:
+            nexus_api (NexusApi): The nexusctl Nexus API to interface with
+                Nexus.
+            dist (str): The name of the distribution associated with the hosted
+                repository.
+
+        Returns:
+            None
+
+        Raises:
+            ProductInstallException: If an error occurred removing the repository.
+        """
+        hosted_repo_name = self.get_hosted_repo_name(dist)
+        try:
+            nexus_api.repos.delete(hosted_repo_name)
+            print(f'Repository {hosted_repo_name} has been removed.')
+        except HTTPError as err:
+            if err.code == 404:
+                print(f'{hosted_repo_name} has already been removed.')
+            else:
+                raise ProductInstallException(
+                    f'Failed to remove repository {hosted_repo_name}: {err}'
+                )

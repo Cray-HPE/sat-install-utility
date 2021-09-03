@@ -33,6 +33,7 @@ from yaml import YAMLLoadWarning
 
 from sat_install_utility.products import ProductCatalog, ProductInstallException
 
+PRODUCT = 'sat'
 PRODUCT_CATALOG_CONFIG_MAP_NAME = 'cray-product-catalog'
 PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE = 'services'
 
@@ -68,11 +69,6 @@ def create_parser():
         'action',
         choices=['uninstall', 'activate'],
         help='Specify the operation to execute on a product.'
-    )
-    parser.add_argument(
-        'product',
-        choices=['sat'],
-        help='Specify the name of the product to operate on.'
     )
     parser.add_argument(
         'version',
@@ -120,31 +116,10 @@ def uninstall(name, version, dist, nexus_api, docker_api):
     product_catalog = ProductCatalog(
         PRODUCT_CATALOG_CONFIG_MAP_NAME, PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE, get_k8s_api()
     )
-    product_to_uninstall, other_products = product_catalog.get_matching_products(name, version)
-
+    product_catalog.remove_product_docker_images(name, version, docker_api)
+    product_to_uninstall = product_catalog.get_product(name, version)
     product_to_uninstall.uninstall_hosted_repo(nexus_api, dist)
-
-    images_to_remove = product_to_uninstall.docker_images
-
-    # For each image to remove, check if it is shared by any other products.
-    for image_name, image_version in images_to_remove.items():
-        other_products_with_same_docker_image = [
-            other_product for other_product in other_products
-            if any([
-                other_image_name == image_name and other_image_version == image_version
-                for other_image_name, other_image_version in other_product.docker_images.items()
-            ])
-        ]
-        if other_products_with_same_docker_image:
-            print(f'Not removing Docker image {image_name}:{image_version} '
-                  f'used by the following other product versions: '
-                  f'{", ".join(str(p) for p in other_products_with_same_docker_image)}')
-        else:
-            product_to_uninstall.uninstall_docker_image(image_name, image_version, docker_api)
-
-    product_to_uninstall.remove_from_product_catalog(
-        PRODUCT_CATALOG_CONFIG_MAP_NAME, PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE
-    )
+    product_catalog.remove_product_entry(name, version)
 
 
 def activate(name, version, dist, nexus_api):
@@ -167,7 +142,7 @@ def activate(name, version, dist, nexus_api):
     product_catalog = ProductCatalog(
         PRODUCT_CATALOG_CONFIG_MAP_NAME, PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE, get_k8s_api()
     )
-    product_to_activate = product_catalog.get_matching_products(name, version)[0]
+    product_to_activate = product_catalog.get_product(name, version)
     product_to_activate.activate_hosted_repo(nexus_api, dist)
 
 
@@ -185,12 +160,12 @@ def main():
     try:
         if args.action == 'uninstall':
             uninstall(
-                args.product, args.version, args.dist, NexusApi(NexusClient(args.nexus_url)),
+                PRODUCT, args.version, args.dist, NexusApi(NexusClient(args.nexus_url)),
                 DockerApi(DockerClient(args.docker_url))
             )
         elif args.action == 'activate':
             activate(
-                args.product, args.version, args.dist, NexusApi(NexusClient(args.nexus_url))
+                PRODUCT, args.version, args.dist, NexusApi(NexusClient(args.nexus_url))
             )
     except ProductInstallException as err:
         print(err)
