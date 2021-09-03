@@ -23,38 +23,16 @@ OTHER DEALINGS IN THE SOFTWARE.
 """
 
 import argparse
-import warnings
 
-from kubernetes.config import load_kube_config, ConfigException
-from kubernetes.client import CoreV1Api
-from nexusctl import DockerApi, DockerClient, NexusApi, NexusClient
-from nexusctl.common import DEFAULT_DOCKER_REGISTRY_API_BASE_URL, DEFAULT_NEXUS_API_BASE_URL
-from yaml import YAMLLoadWarning
-
-from sat_install_utility.products import ProductCatalog, ProductInstallException
+from install_utility_common.constants import (
+    DEFAULT_DOCKER_URL,
+    DEFAULT_NEXUS_URL,
+    PRODUCT_CATALOG_CONFIG_MAP_NAME,
+    PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE
+)
+from install_utility_common.products import ProductCatalog, ProductInstallException
 
 PRODUCT = 'sat'
-PRODUCT_CATALOG_CONFIG_MAP_NAME = 'cray-product-catalog'
-PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE = 'services'
-
-
-def get_k8s_api():
-    """Load a Kubernetes CoreV1Api and return it.
-
-    Returns:
-        CoreV1Api: The Kubernetes API.
-
-    Raises:
-        SystemExit: if there was an error loading the Kubernetes configuration.
-    """
-    try:
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', category=YAMLLoadWarning)
-            load_kube_config()
-        return CoreV1Api()
-    except ConfigException as err:
-        print(f'Unable to load kubernetes configuration: {err}.')
-        raise SystemExit(1)
 
 
 def create_parser():
@@ -75,37 +53,34 @@ def create_parser():
         help='Specify the version of the product to operate on.'
     )
     parser.add_argument(
-        '--dist',
-        default='sle-15sp2',
-        help='When manipulating group and hosted repositories, specify the '
-             'name of the distribution, which is assumed to be the tail of the'
-             'repositories\' names, e.g. sat-2.11-sle-15sp2.'
-    )
-    parser.add_argument(
         '--nexus-url',
-        default=DEFAULT_NEXUS_API_BASE_URL,
-        help='Specify the base URL of Nexus.'
+        help='Override the base URL of Nexus.',
+        default=DEFAULT_NEXUS_URL
     )
     parser.add_argument(
         '--docker-url',
-        default=DEFAULT_DOCKER_REGISTRY_API_BASE_URL,
-        help='Specify the base URL of the Docker registry.'
+        help='Override the base URL of the Docker registry.',
+        default=DEFAULT_DOCKER_URL,
+    )
+    parser.add_argument(
+        '--product-catalog-name',
+        help='The name of the product catalog Kubernetes ConfigMap',
+        default=PRODUCT_CATALOG_CONFIG_MAP_NAME
+    )
+    parser.add_argument(
+        '--product-catalog-namespace',
+        help='The namespace of the product catalog Kubernetes ConfigMap',
+        default=PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE
     )
 
     return parser
 
 
-def uninstall(name, version, dist, nexus_api, docker_api):
+def uninstall(args):
     """Uninstall a version of a product.
 
     Args:
-        name (str): The name of the product, e.g. 'sat'
-        version (str): The version of the product, e.g. '2.1.11'
-        dist (str): Specify the distribution for the hosted repository to remove.
-        nexus_api (NexusApi): The nexusctl Nexus API to interface with
-            Nexus.
-        docker_api (DockerApi): The nexusctl Docker API to interface with
-            the Docker registry.
+        args (argparse.Namespace): The CLI arguments to the command.
 
     Returns:
         None
@@ -114,24 +89,21 @@ def uninstall(name, version, dist, nexus_api, docker_api):
         ProductInstallException: if uninstall failed.
     """
     product_catalog = ProductCatalog(
-        PRODUCT_CATALOG_CONFIG_MAP_NAME, PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE, get_k8s_api()
+        name=args.product_catalog_name,
+        namespace=args.product_catalog_namespace,
+        nexus_url=args.nexus_url,
+        docker_url=args.docker_url
     )
-    product_catalog.remove_product_docker_images(name, version, docker_api)
-    product_to_uninstall = product_catalog.get_product(name, version)
-    product_to_uninstall.uninstall_hosted_repo(nexus_api, dist)
-    product_catalog.remove_product_entry(name, version)
+    product_catalog.remove_product_docker_images(PRODUCT, args.version)
+    product_catalog.uninstall_product_hosted_repos(PRODUCT, args.version)
+    product_catalog.remove_product_entry(PRODUCT, args.version)
 
 
-def activate(name, version, dist, nexus_api):
+def activate(args):
     """Activate a version of a product.
 
     Args:
-        name (str): The name of the product, e.g. 'sat'
-        version (str): The version of the product, e.g. '2.1.11'
-        dist (str): The name of the distribution associated with the hosted
-            and group repositories.
-        nexus_api (NexusApi): The nexusctl Nexus API to interface with
-            Nexus.
+        args (argparse.Namespace): The CLI arguments to the command.
 
     Returns:
         None
@@ -140,10 +112,12 @@ def activate(name, version, dist, nexus_api):
         ProductInstallException: If activation failed.
     """
     product_catalog = ProductCatalog(
-        PRODUCT_CATALOG_CONFIG_MAP_NAME, PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE, get_k8s_api()
+        name=args.product_catalog_name,
+        namespace=args.product_catalog_namespace,
+        nexus_url=args.nexus_url,
+        docker_url=args.docker_url
     )
-    product_to_activate = product_catalog.get_product(name, version)
-    product_to_activate.activate_hosted_repo(nexus_api, dist)
+    product_catalog.activate_product_hosted_repos(PRODUCT, args.version)
 
 
 def main():
@@ -159,14 +133,9 @@ def main():
     args = parser.parse_args()
     try:
         if args.action == 'uninstall':
-            uninstall(
-                PRODUCT, args.version, args.dist, NexusApi(NexusClient(args.nexus_url)),
-                DockerApi(DockerClient(args.docker_url))
-            )
+            uninstall(args)
         elif args.action == 'activate':
-            activate(
-                PRODUCT, args.version, args.dist, NexusApi(NexusClient(args.nexus_url))
-            )
+            activate(args)
     except ProductInstallException as err:
         print(err)
         raise SystemExit(1)

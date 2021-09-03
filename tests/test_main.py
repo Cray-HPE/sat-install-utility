@@ -22,49 +22,24 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
+from argparse import Namespace
 import unittest
-from unittest.mock import Mock, patch
-
-from kubernetes.config import ConfigException
+from unittest.mock import patch
 
 
 from sat_install_utility.main import (
     activate,
-    get_k8s_api,
     main,
     uninstall,
-    PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE,
-    PRODUCT_CATALOG_CONFIG_MAP_NAME
+    PRODUCT
 )
-from sat_install_utility.products import ProductInstallException
-
-
-class TestGetK8sAPI(unittest.TestCase):
-    """Tests for get_k8s_api()."""
-
-    def setUp(self):
-        """Set up mocks."""
-        self.mock_load_kube_config = patch('sat_install_utility.main.load_kube_config').start()
-        self.mock_corev1api = patch('sat_install_utility.main.CoreV1Api').start()
-
-    def tearDown(self):
-        """Stop patches."""
-        patch.stopall()
-
-    def test_get_k8s_api(self):
-        """Test the successful case of get_k8s_api."""
-        api = get_k8s_api()
-        self.mock_load_kube_config.assert_called_once_with()
-        self.mock_corev1api.assert_called_once_with()
-        self.assertEqual(api, self.mock_corev1api.return_value)
-
-    def test_get_k8s_api_config_exception(self):
-        """Test when configuration can't be loaded."""
-        self.mock_load_kube_config.side_effect = ConfigException
-        with self.assertRaises(SystemExit):
-            get_k8s_api()
-        self.mock_load_kube_config.assert_called_once_with()
-        self.mock_corev1api.assert_not_called()
+from install_utility_common.products import ProductInstallException
+from install_utility_common.constants import (
+    DEFAULT_DOCKER_URL,
+    DEFAULT_NEXUS_URL,
+    PRODUCT_CATALOG_CONFIG_MAP_NAME,
+    PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE
+)
 
 
 class TestActivateUninstall(unittest.TestCase):
@@ -72,49 +47,47 @@ class TestActivateUninstall(unittest.TestCase):
     def setUp(self):
         self.mock_product_catalog_cls = patch('sat_install_utility.main.ProductCatalog').start()
         self.mock_product_catalog = self.mock_product_catalog_cls.return_value
-        self.mock_docker = Mock()
-        self.mock_nexus = Mock()
-        self.mock_k8s_api = patch('sat_install_utility.main.get_k8s_api').start().return_value
 
     def test_activate_success(self):
         """Test the successful case for activate()."""
-        activate('mock_name', 'mock_version', 'mock_dist', self.mock_nexus)
+        activate(Namespace(
+            version='mock_version',
+            docker_url='mock_docker_url',
+            nexus_url='mock_nexus_url',
+            product_catalog_name='mock_name',
+            product_catalog_namespace='mock_namespace'
+        ))
         self.mock_product_catalog_cls.assert_called_once_with(
-            PRODUCT_CATALOG_CONFIG_MAP_NAME,
-            PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE,
-            self.mock_k8s_api
+            name='mock_name',
+            namespace='mock_namespace',
+            docker_url='mock_docker_url',
+            nexus_url='mock_nexus_url',
         )
-        self.mock_product_catalog.get_product.assert_called_once_with(
-            'mock_name', 'mock_version'
-        )
-        mock_product = self.mock_product_catalog.get_product.return_value
-        mock_product.activate_hosted_repo.assert_called_once_with(self.mock_nexus, 'mock_dist')
+        self.mock_product_catalog.activate_product_hosted_repos.assert_called_once_with(PRODUCT, 'mock_version')
 
     def test_uninstall_success(self):
         """Test the successful case for uninstall()."""
-        uninstall('mock_name', 'mock_version', 'mock_dist', self.mock_nexus, self.mock_docker)
+        uninstall(Namespace(
+            version='mock_version',
+            docker_url='mock_docker_url',
+            nexus_url='mock_nexus_url',
+            product_catalog_name='mock_name',
+            product_catalog_namespace='mock_namespace'
+        ))
         self.mock_product_catalog_cls.assert_called_once_with(
-            PRODUCT_CATALOG_CONFIG_MAP_NAME,
-            PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE,
-            self.mock_k8s_api
+            name='mock_name',
+            namespace='mock_namespace',
+            docker_url='mock_docker_url',
+            nexus_url='mock_nexus_url',
         )
-        self.mock_product_catalog.remove_product_docker_images.assert_called_once_with(
-            'mock_name', 'mock_version', self.mock_docker
-        )
-        self.mock_product_catalog.get_product.assert_called_once_with(
-            'mock_name', 'mock_version'
-        )
-        mock_product = self.mock_product_catalog.get_product.return_value
-        mock_product.uninstall_hosted_repo.assert_called_once_with(self.mock_nexus, 'mock_dist')
+        self.mock_product_catalog.remove_product_docker_images.assert_called_once_with(PRODUCT, 'mock_version')
+        self.mock_product_catalog.uninstall_product_hosted_repos.assert_called_once_with(PRODUCT, 'mock_version')
+        self.mock_product_catalog.remove_product_entry.assert_called_once_with(PRODUCT, 'mock_version')
 
 
 class TestMain(unittest.TestCase):
     def setUp(self):
         """Set up mocks."""
-        self.mock_nexus_client_cls = patch('sat_install_utility.main.NexusClient').start()
-        self.mock_docker_client_cls = patch('sat_install_utility.main.DockerClient').start()
-        self.mock_nexus_api_cls = patch('sat_install_utility.main.NexusApi').start()
-        self.mock_docker_api_cls = patch('sat_install_utility.main.DockerApi').start()
         self.mock_activate = patch('sat_install_utility.main.activate').start()
         self.mock_uninstall = patch('sat_install_utility.main.uninstall').start()
 
@@ -127,10 +100,14 @@ class TestMain(unittest.TestCase):
         patch('sys.argv', ['sat-install-utility', 'activate', '2.0.3']).start()
         main()
         self.mock_activate.assert_called_once_with(
-            'sat',
-            '2.0.3',
-            'sle-15sp2',
-            self.mock_nexus_api_cls.return_value
+            Namespace(
+                action='activate',
+                docker_url=DEFAULT_DOCKER_URL,
+                nexus_url=DEFAULT_NEXUS_URL,
+                product_catalog_name=PRODUCT_CATALOG_CONFIG_MAP_NAME,
+                product_catalog_namespace=PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE,
+                version='2.0.3'
+            )
         )
 
     def test_uninstall_action(self):
@@ -138,54 +115,23 @@ class TestMain(unittest.TestCase):
         patch('sys.argv', ['sat-install-utility', 'uninstall', '2.0.3']).start()
         main()
         self.mock_uninstall.assert_called_once_with(
-            'sat',
-            '2.0.3',
-            'sle-15sp2',
-            self.mock_nexus_api_cls.return_value,
-            self.mock_docker_api_cls.return_value
+            Namespace(
+                action='uninstall',
+                docker_url=DEFAULT_DOCKER_URL,
+                nexus_url=DEFAULT_NEXUS_URL,
+                product_catalog_name=PRODUCT_CATALOG_CONFIG_MAP_NAME,
+                product_catalog_namespace=PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE,
+                version='2.0.3'
+            )
         )
 
     def test_activate_with_error(self):
         """Test activate when a ProductInstallException occurs."""
         patch('sys.argv', ['sat-install-utility', 'activate', '2.0.3']).start()
         self.mock_activate.side_effect = ProductInstallException('Failed')
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(SystemExit) as err_cm:
             main()
-
-    def test_override_docker_and_nexus_urls(self):
-        """Test with overridden Docker and Nexus API URLs."""
-        mock_argv = [
-            'sat-install-utility', 'uninstall', '2.0.3',
-            '--docker-url=my-registry.com', '--nexus-url=my-nexus.biz'
-        ]
-        patch('sys.argv', mock_argv).start()
-        main()
-        self.mock_nexus_client_cls.assert_called_once_with('my-nexus.biz')
-        self.mock_docker_client_cls.assert_called_once_with('my-registry.com')
-        self.mock_nexus_api_cls.assert_called_once_with(self.mock_nexus_client_cls.return_value)
-        self.mock_docker_api_cls.assert_called_once_with(self.mock_docker_client_cls.return_value)
-        self.mock_uninstall.assert_called_once_with(
-            'sat',
-            '2.0.3',
-            'sle-15sp2',
-            self.mock_nexus_api_cls.return_value,
-            self.mock_docker_api_cls.return_value
-        )
-
-    def test_uninstall_with_dist(self):
-        """Test with overridden distribution value."""
-        mock_argv = [
-            'sat-install-utility', 'uninstall', '2.0.3', '--dist=sle-15sp3'
-        ]
-        patch('sys.argv', mock_argv).start()
-        main()
-        self.mock_uninstall.assert_called_once_with(
-            'sat',
-            '2.0.3',
-            'sle-15sp3',
-            self.mock_nexus_api_cls.return_value,
-            self.mock_docker_api_cls.return_value
-        )
+        self.assertEqual(err_cm.exception.code, 1)
 
 
 if __name__ == '__main__':
