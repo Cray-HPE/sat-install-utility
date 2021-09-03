@@ -3,7 +3,7 @@
 # Dockerfile for sat_install_utility
 
 FROM artifactory.algol60.net/csm-docker/unstable/cray-product-catalog-update:0.5.0-20210812220204_8a25524 as catalog_update_image
-FROM arti.dev.cray.com/baseos-docker-master-local/alpine:3.13.2
+FROM arti.dev.cray.com/baseos-docker-master-local/alpine:3.13.5
 
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
