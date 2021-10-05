@@ -1,10 +1,15 @@
 cachetools==4.2.2
+# TODO(CRAYSAT-1126): When this package is building in artifactory, pin an exact version.
+cray-product-catalog
 certifi==2021.5.30
 charset-normalizer==2.0.3
 google-auth==1.34.0
 idna==3.2
+# TODO(CRAYSAT-1126): When this package is building in artifactory, pin an exact version.
+install-utility-common
 kubernetes==11.0.0
-nexusctl @ git+https://stash.us.cray.com/scm/ssa/nexusctl.git@583e6b2f65d463cf95e4617118837ab2e8ddba5c
+# TODO(CRAYSAT-1126): Pin exact version of nexusctl
+nexusctl @ git+https://stash.us.cray.com/scm/ssa/nexusctl.git@main
 oauthlib==3.1.1
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
