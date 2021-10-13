@@ -15,16 +15,11 @@ COPY sat_install_utility /sat/sat_install_utility
 COPY docker_scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# TODO(CRAYSAT-1126): Remove PIP_EXTRA_INDEX_URL and PIP_TRUSTED_HOST
-# From within the build context, 'host.docker.internal' means the host
-# running Docker, i.e. 'localhost'. This is used to pull in dependencies
-# that are not yet available on artifactory.
-# See: https://connect.us.cray.com/confluence/x/n54cDQ
 RUN apk update && apk add --no-cache python3 git bash && \
     python3 -m venv $VIRTUAL_ENV && \
     pip install --no-cache-dir -U pip && \
-    PIP_EXTRA_INDEX_URL=http://host.docker.internal:8080 \
-    PIP_TRUSTED_HOST="host.docker.internal" \
+    PIP_EXTRA_INDEX_URL="https://arti.dev.cray.com/artifactory/internal-pip-master-local/ \
+        https://artifactory.algol60.net/artifactory/csm-python-modules/simple" \
     pip install --no-cache-dir /sat/ && \
     rm -rf /sat/
 

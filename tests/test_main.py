@@ -15,8 +15,8 @@ from sat_install_utility.main import (
     uninstall,
     PRODUCT
 )
-from install_utility_common.products import ProductInstallException
-from install_utility_common.constants import (
+from shasta_install_utility_common.products import ProductInstallException
+from shasta_install_utility_common.constants import (
     DEFAULT_DOCKER_URL,
     DEFAULT_NEXUS_URL,
     PRODUCT_CATALOG_CONFIG_MAP_NAME,

@@ -6,13 +6,13 @@ Entry point for the SAT install utility.
 
 import argparse
 
-from install_utility_common.constants import (
+from shasta_install_utility_common.constants import (
     DEFAULT_DOCKER_URL,
     DEFAULT_NEXUS_URL,
     PRODUCT_CATALOG_CONFIG_MAP_NAME,
     PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE
 )
-from install_utility_common.products import ProductCatalog, ProductInstallException
+from shasta_install_utility_common.products import ProductCatalog, ProductInstallException
 
 PRODUCT = 'sat'
 
