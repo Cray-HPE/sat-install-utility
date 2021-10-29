@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Extract the latest version number from a CHANGLOG.md file that follows the
+# Extract the latest version number from a CHANGELOG.md file that follows the
 # format proposed by the "Keep a Changelog" project.
 #
 # (C) Copyright 2020 Hewlett Packard Enterprise Development LP.

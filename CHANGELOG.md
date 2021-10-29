@@ -2,28 +2,33 @@
 
 (C) Copyright 2021 Hewlett Packard Enterprise Development LP.
 
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the "Software"),
-to deal in the Software without restriction, including without limitation
-the rights to use, copy, modify, merge, publish, distribute, sublicense,
-and/or sell copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
-THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.3.2] - 2021-10-29
+
+### Changed
+
+- Use command-line parser from ``shasta-install-utility-common``,
+  replacing ``get_parser``.
+
+## [1.3.1] - 2021-10-13
+
+### Changed
+
+- Updated build pipeline to use internally-available library versions,
+  and use new library name of ``shasta-install-utility-common``.
+
+## [1.3.0] - 2021-09-03
+
+### Changed
+
+- Removed code common to all install utilities and added a dependency on
+ ``install_utility_common``.
+- Removed the product positional argument.
+- Change expected product catalog data format.
 
 ## [1.2.0] - 2021-09-03
 

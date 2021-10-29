@@ -2,10 +2,14 @@ cachetools==4.2.2
 certifi==2021.5.30
 charset-normalizer==2.0.3
 coverage==5.5
+# TODO(CRAYSAT-1182): This version should be a stable version when changes are merged to release branch.
+cray-product-catalog==0.0.114
 google-auth==1.34.0
 idna==3.2
 kubernetes==11.0.0
-nexusctl @ git+https://stash.us.cray.com/scm/ssa/nexusctl.git@583e6b2f65d463cf95e4617118837ab2e8ddba5c
+# TODO(CRAYSAT-1170): Stop installing from stash. If artifacts are published then we can
+# also stop just specifying 'main' branch here.
+nexusctl @ git+https://stash.us.cray.com/scm/ssa/nexusctl.git@main
 nose==1.3.7
 oauthlib==3.1.1
 pyasn1==0.4.8
@@ -16,6 +20,7 @@ PyYAML==5.4.1
 requests==2.26.0
 requests-oauthlib==1.3.0
 rsa==4.7.2
+shasta-install-utility-common==2.1.0
 six==1.16.0
 urllib3==1.26.6
 websocket-client==1.1.0
