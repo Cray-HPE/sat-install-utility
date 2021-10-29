@@ -7,33 +7,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.3.2] - 2021-10-29
 
 ### Changed
 
-- Use command-line parser from common library.
+- Use command-line parser from ``shasta-install-utility-common``,
+  replacing ``get_parser``.
 
 ## [1.3.1] - 2021-10-13
 
 ### Changed
 
-- Updated build pipeline to use internally-available library versions.
+- Updated build pipeline to use internally-available library versions,
+  and use new library name of ``shasta-install-utility-common``.
 
 ## [1.3.0] - 2021-09-03
 
 ### Changed
 
 - Removed code common to all install utilities and added a dependency on
-  `install_utility_common`.
+ ``install_utility_common``.
+- Removed the product positional argument.
+- Change expected product catalog data format.
 
 ## [1.2.0] - 2021-09-03
 
 ### Changed
 
-- Removed the product positional argument.
-- Refactored code that interacts with the product catalog in preparation for
-  change to use a common install utility library.
-- Change expected product catalog data format.
 - Changed the expected format of data in the ``cray-product-catalog`` ConfigMap
   so that multiple Docker images can be associated with a single product
   version. Maintains backwards compatibility with previous ``cray-product-catalog``
