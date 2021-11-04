@@ -30,6 +30,15 @@ class TestActivateUninstall(unittest.TestCase):
         self.mock_product_catalog_cls = patch('sat_install_utility.main.ProductCatalog').start()
         self.mock_product_catalog = self.mock_product_catalog_cls.return_value
 
+        self.mock_product = self.mock_product_catalog.get_product.return_value
+        self.mock_product.version = 'x.y.z'
+        self.mock_product.clone_url = 'https://vcs.local/cray/sat-config-management.git'
+
+        self.mock_cfs_activate = patch('sat_install_utility.main.cfs_activate_version',
+                                       return_value=(['mock_cfg'], [])).start()
+        self.mock_cfs_deactivate = patch('sat_install_utility.main.cfs_deactivate_version',
+                                         return_value=(['mock_cfg'], [])).start()
+
     def test_activate_success(self):
         """Test the successful case for activate()."""
         activate(Namespace(
@@ -46,6 +55,15 @@ class TestActivateUninstall(unittest.TestCase):
             nexus_url='mock_nexus_url',
         )
         self.mock_product_catalog.activate_product_hosted_repos.assert_called_once_with(PRODUCT, 'mock_version')
+
+        self.mock_cfs_deactivate.assert_not_called()
+        self.mock_cfs_activate.assert_called_once_with(
+            'sat',
+            self.mock_product.version,
+            'sat-ncn',
+            self.mock_product.clone_url,
+            'sat-ncn.yml',
+        )
 
     def test_uninstall_success(self):
         """Test the successful case for uninstall()."""

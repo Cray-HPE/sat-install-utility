@@ -4,11 +4,61 @@ Entry point for the SAT install utility.
 (C) Copyright 2021 Hewlett Packard Enterprise Development LP.
 """
 
+import logging
 
+from cfs_config_util.activation import (
+    cfs_activate_version,
+    cfs_deactivate_version,
+)
 from shasta_install_utility_common.products import ProductCatalog, ProductInstallException
 from shasta_install_utility_common.parser import create_parser
 
-PRODUCT = 'sat'
+from sat_install_utility.constants import (
+    PRODUCT,
+    PRODUCT_CFS_NCN_CFG_LAYER,
+    PRODUCT_NCN_PLAYBOOK,
+)
+
+
+def configure_logging():
+    """Configure logging for the root logger.
+
+    This sets up the root logger with the default format, WARNING log level, and
+    stderr log handler. This allows logging messages from cfs-config-util
+    library code to be logged to stderr.
+
+    Returns:
+        None.
+    """
+    CONSOLE_LOG_FORMAT = '%(levelname)s: %(message)s'
+    logger = logging.getLogger()
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.WARNING)
+    console_formatter = logging.Formatter(CONSOLE_LOG_FORMAT)
+    console_handler.setFormatter(console_formatter)
+    logger.addHandler(console_handler)
+    logger.setLevel(logging.WARNING)
+
+
+def report_cfs_results(success_fail_tuple):
+    """Helper function to report the results of a CFS update action.
+
+    Args:
+        success_fail_tuple ([str], [str]): tuple returned from
+            cfs_activate_version or cfs_deactivate_version
+
+    Returns: None.
+
+    Raises:
+        ProductInstallException: if there are configurations that failed to
+            update
+    """
+    succeeded, failed = success_fail_tuple
+    if succeeded:
+        print(f'Updated CFS configurations: [{", ".join(succeeded)}]')
+    if failed:
+        raise ProductInstallException(f'Could not update CFS configurations: '
+                                      f'[{", ".join(failed)}]')
 
 
 def uninstall(args):
@@ -33,6 +83,8 @@ def uninstall(args):
     product_catalog.uninstall_product_hosted_repos(PRODUCT, args.version)
     product_catalog.remove_product_entry(PRODUCT, args.version)
 
+    # TODO (CRAYSAT-1262): Remove CFS configuration layer as appropriate
+
 
 def activate(args):
     """Activate a version of a product.
@@ -55,6 +107,21 @@ def activate(args):
     product_catalog.activate_product_hosted_repos(PRODUCT, args.version)
     product_catalog.activate_product_entry(PRODUCT, args.version)
 
+    # TODO (CRAYSAT-1262): Abstract this into shasta-install-utility-common
+    product_version = product_catalog.get_product(PRODUCT, args.version)
+    if product_version.clone_url is None:
+        print(f'CFS import for {PRODUCT} not detected; skipping CFS configuration.')
+        return
+
+    cfs_results = cfs_activate_version(
+        PRODUCT,
+        product_version.version,
+        PRODUCT_CFS_NCN_CFG_LAYER,
+        product_version.clone_url,
+        PRODUCT_NCN_PLAYBOOK,
+    )
+    report_cfs_results(cfs_results)
+
 
 def main():
     """Main entry point.
@@ -65,6 +132,7 @@ def main():
     Raises:
         SystemExit: if a ProductInstallException occurs.
     """
+    configure_logging()
     parser = create_parser()
     args = parser.parse_args()
     try:

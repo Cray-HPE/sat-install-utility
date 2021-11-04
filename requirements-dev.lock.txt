@@ -1,6 +1,7 @@
 cachetools==4.2.2
 certifi==2021.5.30
 charset-normalizer==2.0.3
+cfs-config-util==1.0.0
 coverage==5.5
 # TODO(CRAYSAT-1182): This version should be a stable version when changes are merged to release branch.
 cray-product-catalog==0.0.114
