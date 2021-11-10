@@ -19,7 +19,7 @@ RUN apk update && apk add --no-cache python3 git bash && \
     python3 -m venv $VIRTUAL_ENV && \
     pip install --no-cache-dir -U pip && \
     PIP_EXTRA_INDEX_URL="https://arti.dev.cray.com/artifactory/internal-pip-master-local/ \
-        https://artifactory.algol60.net/artifactory/csm-python-modules/simple" \
+        https://arti.dev.cray.com/artifactory/csm-python-modules-remote/simple" \
     pip install --no-cache-dir /sat/ && \
     rm -rf /sat/
 
