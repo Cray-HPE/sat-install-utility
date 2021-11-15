@@ -53,6 +53,7 @@ def activate(args):
         docker_url=args.docker_url
     )
     product_catalog.activate_product_hosted_repos(PRODUCT, args.version)
+    product_catalog.activate_product_entry(PRODUCT, args.version)
 
 
 def main():
