@@ -7,6 +7,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2021-11-15
+
+### Added
+
+- When activating or uninstalling a version of SAT, the 'sat-ncn' layer of the
+  CFS configuration(s) targeting nodes with the "Management" role and the
+  "Master" subrole is now updated or removed automatically.
+
 ## [1.3.3] - 2021-11-15
 
 ### Added
