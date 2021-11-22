@@ -15,11 +15,12 @@ COPY sat_install_utility /sat/sat_install_utility
 COPY docker_scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+ARG PIP_EXTRA_INDEX_URL="https://arti.dev.cray.com/artifactory/internal-pip-master-local/ \
+    https://arti.dev.cray.com/artifactory/csm-python-modules-remote/simple"
+
 RUN apk update && apk add --no-cache python3 git bash && \
     python3 -m venv $VIRTUAL_ENV && \
     pip install --no-cache-dir -U pip && \
-    PIP_EXTRA_INDEX_URL="https://arti.dev.cray.com/artifactory/internal-pip-master-local/ \
-        https://artifactory.algol60.net/artifactory/csm-python-modules/simple" \
     pip install --no-cache-dir /sat/ && \
     rm -rf /sat/
 
