@@ -2,7 +2,7 @@ cachetools==4.2.2
 certifi==2021.5.30
 cfs-config-util==1.0.0
 charset-normalizer==2.0.3
-cray-product-catalog==1.2.70
+cray-product-catalog==1.3.2
 google-auth==1.34.0
 idna==3.2
 kubernetes==11.0.0
@@ -17,7 +17,7 @@ PyYAML==5.4.1
 requests==2.26.0
 requests-oauthlib==1.3.0
 rsa==4.7.2
-shasta-install-utility-common==2.2.0
+shasta-install-utility-common==2.2.1
 six==1.16.0
 urllib3==1.26.6
 websocket-client==1.1.0

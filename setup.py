@@ -28,7 +28,7 @@ setup(
     description="System Admin Toolkit Install Utility",
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://stash.us.cray.com/projects/SAT/repos/sat-install-utility',
+    url='https://github.hpe.com/hpe/hpc-sat-install-utility',
     author='Hewlett Packard Enterprise Development LP',
     license='MIT',
     packages=find_packages(exclude=['tests', 'tests.*', 'tools', 'tools.*']),
