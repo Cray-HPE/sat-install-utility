@@ -7,6 +7,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2022-01-05
+
+### Changed
+
+- Updated to new versions of ``cray-product-catalog`` and ``shasta-install-utility-common``.
+  The updated version of ``cray-product-catalog`` no longer updates the "active" field
+  by default when running ``catalog_update``, so ``shasta-install-utility-common`` is updated
+  to a version that explicitly sets the "active" field.
+
 ## [1.4.0] - 2021-11-15
 
 ### Added
