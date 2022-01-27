@@ -12,4 +12,5 @@ dockerBuildPipeline {
   product = "sat"
   buildPrepScript = "build_scripts/runBuildPrepVenv.sh"
   unitTestScript = "build_scripts/runUnitTestVenv.sh"
+  versionScript = "build_scripts/version.sh"
 }
