@@ -1,7 +1,7 @@
 // vi: sts=4 et ai
 // (C) Copyright 2021 Hewlett Packard Enterprise Development LP.
 
-@Library('dst-shared@master') _
+@Library('dst-shared@release/sat-2.2') _
 
 dockerBuildPipeline {
   repository = "cray"
