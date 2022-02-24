@@ -1,7 +1,7 @@
 """
 Unit tests for the sat_install_utility.main module.
 
-(C) Copyright 2021 Hewlett Packard Enterprise Development LP.
+(C) Copyright 2021-2022 Hewlett Packard Enterprise Development LP.
 """
 
 from argparse import Namespace
@@ -36,8 +36,6 @@ class TestActivateUninstall(unittest.TestCase):
 
         self.mock_cfs_activate = patch('sat_install_utility.main.cfs_activate_version',
                                        return_value=(['mock_cfg'], [])).start()
-        self.mock_cfs_deactivate = patch('sat_install_utility.main.cfs_deactivate_version',
-                                         return_value=(['mock_cfg'], [])).start()
 
     def test_activate_success(self):
         """Test the successful case for activate()."""
@@ -56,11 +54,9 @@ class TestActivateUninstall(unittest.TestCase):
         )
         self.mock_product_catalog.activate_product_hosted_repos.assert_called_once_with(PRODUCT, 'mock_version')
 
-        self.mock_cfs_deactivate.assert_not_called()
         self.mock_cfs_activate.assert_called_once_with(
             'sat',
             self.mock_product.version,
-            'sat-ncn',
             self.mock_product.clone_url,
             'sat-ncn.yml',
         )
