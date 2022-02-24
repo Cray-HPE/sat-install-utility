@@ -1,21 +1,17 @@
 """
 Entry point for the SAT install utility.
 
-(C) Copyright 2021 Hewlett Packard Enterprise Development LP.
+(C) Copyright 2021-2022 Hewlett Packard Enterprise Development LP.
 """
 
 import logging
 
-from cfs_config_util.activation import (
-    cfs_activate_version,
-    cfs_deactivate_version,
-)
+from cfs_config_util.activation import cfs_activate_version
 from shasta_install_utility_common.products import ProductCatalog, ProductInstallException
 from shasta_install_utility_common.parser import create_parser
 
 from sat_install_utility.constants import (
     PRODUCT,
-    PRODUCT_CFS_NCN_CFG_LAYER,
     PRODUCT_NCN_PLAYBOOK,
 )
 
@@ -45,7 +41,7 @@ def report_cfs_results(success_fail_tuple):
 
     Args:
         success_fail_tuple ([str], [str]): tuple returned from
-            cfs_activate_version or cfs_deactivate_version
+            cfs_activate_version
 
     Returns: None.
 
@@ -116,7 +112,6 @@ def activate(args):
     cfs_results = cfs_activate_version(
         PRODUCT,
         product_version.version,
-        PRODUCT_CFS_NCN_CFG_LAYER,
         product_version.clone_url,
         PRODUCT_NCN_PLAYBOOK,
     )
