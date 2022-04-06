@@ -1,4 +1,4 @@
-# Copyright 2021 Hewlett Packard Enterprise Development LP
+# Copyright 2021-2022 Hewlett Packard Enterprise Development LP
 #
 # Dockerfile for sat_install_utility
 
@@ -15,7 +15,8 @@ COPY sat_install_utility /sat/sat_install_utility
 COPY docker_scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-ARG PIP_EXTRA_INDEX_URL="https://arti.dev.cray.com/artifactory/internal-pip-master-local/ \
+# For external dependencies, always pull from internal-pip-stable-local
+ARG PIP_EXTRA_INDEX_URL="https://arti.dev.cray.com/artifactory/internal-pip-stable-local/ \
     https://arti.dev.cray.com/artifactory/csm-python-modules-remote/simple"
 
 RUN apk update && apk add --no-cache python3 git bash && \
