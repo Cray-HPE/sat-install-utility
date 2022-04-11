@@ -20,7 +20,9 @@ from shasta_install_utility_common.constants import (
     DEFAULT_DOCKER_URL,
     DEFAULT_NEXUS_URL,
     PRODUCT_CATALOG_CONFIG_MAP_NAME,
-    PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE
+    PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE,
+    NEXUS_CREDENTIALS_SECRET_NAME,
+    NEXUS_CREDENTIALS_SECRET_NAMESPACE
 )
 
 
@@ -44,13 +46,17 @@ class TestActivateUninstall(unittest.TestCase):
             docker_url='mock_docker_url',
             nexus_url='mock_nexus_url',
             product_catalog_name='mock_name',
-            product_catalog_namespace='mock_namespace'
+            product_catalog_namespace='mock_namespace',
+            nexus_credentials_secret_name='mock_nexus_secret',
+            nexus_credentials_secret_namespace='mock_nexus_secret_namespace'
         ))
         self.mock_product_catalog_cls.assert_called_once_with(
             name='mock_name',
             namespace='mock_namespace',
             docker_url='mock_docker_url',
             nexus_url='mock_nexus_url',
+            nexus_credentials_secret_name='mock_nexus_secret',
+            nexus_credentials_secret_namespace='mock_nexus_secret_namespace'
         )
         self.mock_product_catalog.activate_product_hosted_repos.assert_called_once_with(PRODUCT, 'mock_version')
 
@@ -68,13 +74,17 @@ class TestActivateUninstall(unittest.TestCase):
             docker_url='mock_docker_url',
             nexus_url='mock_nexus_url',
             product_catalog_name='mock_name',
-            product_catalog_namespace='mock_namespace'
+            product_catalog_namespace='mock_namespace',
+            nexus_credentials_secret_name='mock_nexus_secret',
+            nexus_credentials_secret_namespace='mock_nexus_secret_namespace'
         ))
         self.mock_product_catalog_cls.assert_called_once_with(
             name='mock_name',
             namespace='mock_namespace',
             docker_url='mock_docker_url',
             nexus_url='mock_nexus_url',
+            nexus_credentials_secret_name='mock_nexus_secret',
+            nexus_credentials_secret_namespace='mock_nexus_secret_namespace'
         )
         self.mock_product_catalog.remove_product_docker_images.assert_called_once_with(PRODUCT, 'mock_version')
         self.mock_product_catalog.uninstall_product_hosted_repos.assert_called_once_with(PRODUCT, 'mock_version')
@@ -102,6 +112,8 @@ class TestMain(unittest.TestCase):
                 nexus_url=DEFAULT_NEXUS_URL,
                 product_catalog_name=PRODUCT_CATALOG_CONFIG_MAP_NAME,
                 product_catalog_namespace=PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE,
+                nexus_credentials_secret_name=NEXUS_CREDENTIALS_SECRET_NAME,
+                nexus_credentials_secret_namespace=NEXUS_CREDENTIALS_SECRET_NAMESPACE,
                 version='2.0.3'
             )
         )
@@ -117,6 +129,8 @@ class TestMain(unittest.TestCase):
                 nexus_url=DEFAULT_NEXUS_URL,
                 product_catalog_name=PRODUCT_CATALOG_CONFIG_MAP_NAME,
                 product_catalog_namespace=PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE,
+                nexus_credentials_secret_name=NEXUS_CREDENTIALS_SECRET_NAME,
+                nexus_credentials_secret_namespace=NEXUS_CREDENTIALS_SECRET_NAMESPACE,
                 version='2.0.3'
             )
         )
