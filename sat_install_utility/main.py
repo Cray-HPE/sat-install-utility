@@ -73,7 +73,9 @@ def uninstall(args):
         name=args.product_catalog_name,
         namespace=args.product_catalog_namespace,
         nexus_url=args.nexus_url,
-        docker_url=args.docker_url
+        docker_url=args.docker_url,
+        nexus_credentials_secret_name=args.nexus_credentials_secret_name,
+        nexus_credentials_secret_namespace=args.nexus_credentials_secret_namespace
     )
     product_catalog.remove_product_docker_images(PRODUCT, args.version)
     product_catalog.uninstall_product_hosted_repos(PRODUCT, args.version)
@@ -98,7 +100,9 @@ def activate(args):
         name=args.product_catalog_name,
         namespace=args.product_catalog_namespace,
         nexus_url=args.nexus_url,
-        docker_url=args.docker_url
+        docker_url=args.docker_url,
+        nexus_credentials_secret_name=args.nexus_credentials_secret_name,
+        nexus_credentials_secret_namespace=args.nexus_credentials_secret_namespace
     )
     product_catalog.activate_product_hosted_repos(PRODUCT, args.version)
     product_catalog.activate_product_entry(PRODUCT, args.version)
