@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2021-2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -21,29 +21,19 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
-# Dockerfile for sat_install_utility
 
-FROM artifactory.algol60.net/csm-docker/stable/docker.io/library/alpine:3.15
+NAME ?= sat-install-utility
+VERSION ?= $(shell build_scripts/version.sh)
 
-ENV VIRTUAL_ENV=/opt/venv
-ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
+# Helm Chart
 
-COPY CHANGELOG.md README.md /sat/
-COPY setup.py /sat/
-COPY requirements.lock.txt /sat/requirements.txt
-COPY tools /sat/tools
-COPY sat_install_utility /sat/sat_install_utility
-COPY docker_scripts/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+all : prep unittest image
 
-# TODO: stop pulling from internal artifactory when nexusctl is open source.
-ARG PIP_EXTRA_INDEX_URL="https://arti.dev.cray.com/artifactory/internal-pip-stable-local/ \
-    https://artifactory.algol60.net/artifactory/csm-python-modules/simple"
+prep:
+		build_scripts/runBuildPrepVenv.sh
 
-RUN apk update && apk add --no-cache python3 git bash && \
-    python3 -m venv $VIRTUAL_ENV && \
-    pip install --no-cache-dir -U pip && \
-    pip install --no-cache-dir /sat/ && \
-    rm -rf /sat/
+unittest:
+		build_scripts/runUnitTestVenv.sh
 
-ENTRYPOINT ["/entrypoint.sh"]
+image:
+		docker build --pull $(DOCKER_ARGS) --tag '$(NAME):$(VERSION)' .
