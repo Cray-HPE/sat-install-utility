@@ -7,6 +7,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.4] - 2022-06-15
+
+### Changed
+- Made changes related to open sourcing of sat-install-utility.
+    - Update Jenkinsfile to use csm-shared-library.
+    - Add Makefile for building container image and helm chart.
+    - Pull base container image from external location.
+    - Changed the builds to publish to the ``sat-docker`` Artifactory
+      repository.
+    - Updated bugfix versions of dependencies to pull versions from
+      external Artifactory.
+
 ## [1.4.3] - 2022-02-16
 
 ### Changed
