@@ -8,9 +8,7 @@ google-auth==1.34.0
 idna==3.2
 jsonschema==3.2.0
 kubernetes==11.0.0
-# TODO(CRAYSAT-1170): Stop installing from stash. If artifacts are published then we can
-# also stop just specifying 'main' branch here.
-nexusctl @ git+https://stash.us.cray.com/scm/ssa/nexusctl.git@main
+nexusctl==1.1.1
 oauthlib==3.1.1
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
