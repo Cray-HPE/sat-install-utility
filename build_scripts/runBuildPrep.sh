@@ -23,6 +23,6 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 
-PIP_EXTRA_INDEX_URL="https://arti.dev.cray.com/artifactory/internal-pip-stable-local/ \
+PIP_EXTRA_INDEX_URL="https://arti.hpc.amslabs.hpecorp.net/artifactory/internal-pip-stable-local/ \
     https://artifactory.algol60.net/artifactory/csm-python-modules/simple" \
 pip3 install -r requirements-dev.lock.txt
