@@ -24,6 +24,9 @@
 
 NAME ?= sat-install-utility
 VERSION ?= $(shell build_scripts/version.sh)
+ifneq ($(wildcard ${HOME}/.netrc),)
+	DOCKER_ARGS ?= --secret id=netrc,src=${HOME}/.netrc
+endif
 
 # Helm Chart
 
