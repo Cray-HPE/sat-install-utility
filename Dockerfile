@@ -39,10 +39,11 @@ RUN chmod +x /entrypoint.sh
 # For external dependencies, always pull from internal-pip-stable-local
 
 # TODO: stop pulling from internal artifactory when nexusctl is open source.
-ARG PIP_EXTRA_INDEX_URL="https://arti.dev.cray.com/artifactory/internal-pip-stable-local/ \
+ARG PIP_EXTRA_INDEX_URL="https://arti.hpc.amslabs.hpecorp.net/artifactory/internal-pip-stable-local/ \
     https://artifactory.algol60.net/artifactory/csm-python-modules/simple"
 
-RUN apk update && apk add --no-cache python3 git bash && \
+RUN --mount=type=secret,id=netrc,target=/root/.netrc \
+    apk update && apk add --no-cache python3 git bash && \
     python3 -m venv $VIRTUAL_ENV && \
     pip install --no-cache-dir -U pip && \
     pip install --no-cache-dir /sat/ && \
