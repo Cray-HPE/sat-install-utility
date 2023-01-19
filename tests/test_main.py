@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2021-2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2021-2023 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -80,6 +80,7 @@ class TestActivateUninstall(unittest.TestCase):
             nexus_credentials_secret_namespace='mock_nexus_secret_namespace'
         )
         self.mock_product_catalog.activate_product_hosted_repos.assert_called_once_with(PRODUCT, 'mock_version')
+        self.mock_product_catalog.activate_product_entry.assert_not_called()
 
         self.mock_cfs_activate.assert_called_once_with(
             'sat',
