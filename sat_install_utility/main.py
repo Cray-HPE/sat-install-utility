@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2021-2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2021-2023 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -126,7 +126,6 @@ def activate(args):
         nexus_credentials_secret_namespace=args.nexus_credentials_secret_namespace
     )
     product_catalog.activate_product_hosted_repos(PRODUCT, args.version)
-    product_catalog.activate_product_entry(PRODUCT, args.version)
 
     # TODO (CRAYSAT-1262): Abstract this into shasta-install-utility-common
     product_version = product_catalog.get_product(PRODUCT, args.version)
