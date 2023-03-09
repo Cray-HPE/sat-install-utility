@@ -36,8 +36,8 @@ pipeline {
     }
 
     environment {
-        NAME = 'sat-install-utility'
-        DESCRIPTION = 'SAT Install Utility'
+        NAME = 'product-deletion-utility'
+        DESCRIPTION = 'Product Deletion Utility'
         IS_STABLE = getBuildIsStable(releaseBranchIsStable: true)
         VERSION = getDockerBuildVersion(versionScript: 'build_scripts/version.sh', isStable: env.IS_STABLE)
         DOCKER_ARGS = getDockerBuildArgs(name: env.NAME, description: env.DESCRIPTION, version: env.VERSION)
@@ -70,7 +70,6 @@ pipeline {
             steps {
                 script {
                     publishCsmDockerImage(
-                        artifactoryRepo: 'sat-docker',
                         image: env.NAME,
                         tag: env.VERSION,
                         isStable: env.IS_STABLE

@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2021-2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2021-2023 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -21,18 +21,20 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
-# Dockerfile for sat_install_utility
+# Dockerfile for product_deletion_utility
 
-FROM artifactory.algol60.net/csm-docker/stable/docker.io/library/alpine:3.15
+FROM artifactory.algol60.net/csm-docker/stable/docker.io/library/alpine:3.16
 
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 
-COPY CHANGELOG.md README.md /sat/
-COPY setup.py /sat/
-COPY requirements.lock.txt /sat/requirements.txt
-COPY tools /sat/tools
-COPY sat_install_utility /sat/sat_install_utility
+ENV INSTALLDIR="/deletion"
+
+COPY CHANGELOG.md README.md ${INSTALLDIR}/
+COPY setup.py ${INSTALLDIR}/
+COPY requirements.lock.txt ${INSTALLDIR}/requirements.txt
+COPY tools ${INSTALLDIR}/tools
+COPY product_deletion_utility ${INSTALLDIR}/product_deletion_utility
 COPY docker_scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
@@ -42,11 +44,12 @@ RUN chmod +x /entrypoint.sh
 ARG PIP_EXTRA_INDEX_URL="https://arti.hpc.amslabs.hpecorp.net/artifactory/internal-pip-stable-local/ \
     https://artifactory.algol60.net/artifactory/csm-python-modules/simple"
 
+# RUN does not support ENVs, so specify INSTALLDIR explicitly.
 RUN --mount=type=secret,id=netrc,target=/root/.netrc \
     apk update && apk add --no-cache python3 git bash && \
     python3 -m venv $VIRTUAL_ENV && \
     pip install --no-cache-dir -U pip && \
-    pip install --no-cache-dir /sat/ && \
-    rm -rf /sat/
+    pip install --no-cache-dir /deletion/ && \
+    rm -rf /deletion/
 
 ENTRYPOINT ["/entrypoint.sh"]

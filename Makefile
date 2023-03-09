@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2022-2023 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 
-NAME ?= sat-install-utility
+NAME ?= product-deletion-utility
 VERSION ?= $(shell build_scripts/version.sh)
 ifneq ($(wildcard ${HOME}/.netrc),)
 	DOCKER_ARGS ?= --secret id=netrc,src=${HOME}/.netrc

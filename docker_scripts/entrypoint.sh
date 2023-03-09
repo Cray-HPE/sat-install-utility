@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2022-2023 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -30,4 +30,4 @@ set -e
 #
 export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 update-ca-certificates 2>/dev/null
-sat-install-utility "$@"
+product-deletion-utility "$@"

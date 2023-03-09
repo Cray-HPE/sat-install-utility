@@ -1,4 +1,3 @@
-# SAT Install Utility
+# Product Deletion Utility
 
-The SAT install utility is a tool for manipulating installations of the System
-Admin Toolkit (SAT). It provides downgrade and uninstall support.
+The product deletion utility is a tool for deleting product components installed through the Installation and Upgrade Framework (IUF).

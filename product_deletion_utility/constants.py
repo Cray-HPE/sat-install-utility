@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2021-2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2021-2023 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,8 +22,8 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 """
-Constants used by sat-install-utility.
+Constants used by product-deletion-utility.
 """
 
-PRODUCT = 'sat'
-PRODUCT_NCN_PLAYBOOK = f'{PRODUCT}-ncn.yml'
+PRODUCT = 'product-deletion'
+

@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2021 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2021-2023 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
-# setuptools-based installation module for sat-install-utility
+# setuptools-based installation module for product-deletion-utility
 
 from os import path
 from setuptools import setup, find_packages
@@ -45,12 +45,12 @@ if version is None:
     version = 'VERSION_MISSING'
 
 setup(
-    name='sat-install-utility',
+    name='product-deletion-utility',
     version=version,
-    description="System Admin Toolkit Install Utility",
+    description="Product Deletion Utility",
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.hpe.com/hpe/hpc-sat-install-utility',
+    url='https://github.com/Cray-HPE/product-deletion-utility',
     author='Hewlett Packard Enterprise Development LP',
     license='MIT',
     packages=find_packages(exclude=['tests', 'tests.*', 'tools', 'tools.*']),
@@ -60,7 +60,7 @@ setup(
     # This makes setuptools generate our executable script automatically for us.
     entry_points={
         'console_scripts': [
-            'sat-install-utility=sat_install_utility.main:main'
+            'product-deletion-utility=product_deletion_utility.main:main'
         ]
     },
 )

@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2021 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2021-2023 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,6 @@
 #
 
 base_dir=$(dirname "$0")
-rm -rf sat-install-utility-venv && virtualenv -p $(which python3) ./sat-install-utility-venv
-source sat-install-utility-venv/bin/activate
+rm -rf product-deletion-utility-venv && virtualenv --python $(which python3) ./product-deletion-utility-venv
+source product-deletion-utility-venv/bin/activate
 $base_dir/runBuildPrep.sh
