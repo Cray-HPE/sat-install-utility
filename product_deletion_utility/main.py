@@ -30,10 +30,6 @@ import logging
 from shasta_install_utility_common.products import ProductCatalog, ProductInstallException
 from shasta_install_utility_common.parser import create_parser
 
-from product_deletion_utility.constants import (
-    PRODUCT,
-)
-
 
 def configure_logging():
     """Configure logging for the root logger.
@@ -54,8 +50,8 @@ def configure_logging():
     logger.setLevel(logging.WARNING)
 
 
-def uninstall(args):
-    """Uninstall a version of a product.
+def delete(args):
+    """Delete a version of a product.
 
     Args:
         args (argparse.Namespace): The CLI arguments to the command.
@@ -74,9 +70,9 @@ def uninstall(args):
         nexus_credentials_secret_name=args.nexus_credentials_secret_name,
         nexus_credentials_secret_namespace=args.nexus_credentials_secret_namespace
     )
-    product_catalog.remove_product_docker_images(PRODUCT, args.version)
-    product_catalog.uninstall_product_hosted_repos(PRODUCT, args.version)
-    product_catalog.remove_product_entry(PRODUCT, args.version)
+    product_catalog.remove_product_docker_images(args.product, args.version)
+    product_catalog.uninstall_product_hosted_repos(args.product, args.version)
+    product_catalog.remove_product_entry(args.product, args.version)
 
     # TODO (CRAYSAT-1262): Remove CFS configuration layer as appropriate
 
@@ -92,10 +88,15 @@ def main():
     """
     configure_logging()
     parser = create_parser()
+    # The shasta-common-utility does not have 'product' as an argument.
+    parser.add_argument(
+        'product',
+        help='The name of the product to delete or activate.'
+    )
     args = parser.parse_args()
     try:
-        if args.action == 'uninstall':
-            uninstall(args)
+        if args.action == 'delete' or args.action == 'uninstall':
+            delete(args)
     except ProductInstallException as err:
         print(err)
         raise SystemExit(1)
