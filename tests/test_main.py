@@ -99,7 +99,7 @@ class TestMain(unittest.TestCase):
         action = 'uninstall'
         product = 'old-product'
         version = '2.0.3'
-        patch('sys.argv', ['product-deletion-utility', action, version, product]).start()
+        patch('sys.argv', ['product-deletion-utility', action, product, version]).start()
         main()
         self.mock_uninstall.assert_called_once_with(
             Namespace(
@@ -120,7 +120,7 @@ class TestMain(unittest.TestCase):
         action = 'delete'
         product = 'old-product'
         version = '2.0.3'
-        patch('sys.argv', ['product-deletion-utility', action, version, product]).start()
+        patch('sys.argv', ['product-deletion-utility', action, product, version]).start()
         main()
         self.mock_uninstall.assert_called_once_with(
             Namespace(

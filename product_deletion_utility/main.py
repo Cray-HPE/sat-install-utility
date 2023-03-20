@@ -28,7 +28,7 @@ Entry point for the product deletion utility.
 import logging
 
 from shasta_install_utility_common.products import ProductCatalog, ProductInstallException
-from shasta_install_utility_common.parser import create_parser
+from product_deletion_utility.parser.parser import create_parser
 
 
 def configure_logging():
@@ -88,11 +88,6 @@ def main():
     """
     configure_logging()
     parser = create_parser()
-    # The shasta-common-utility does not have 'product' as an argument.
-    parser.add_argument(
-        'product',
-        help='The name of the product to delete or activate.'
-    )
     args = parser.parse_args()
     try:
         if args.action == 'delete' or args.action == 'uninstall':
