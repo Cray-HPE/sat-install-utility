@@ -27,7 +27,9 @@ Entry point for the product deletion utility.
 
 import logging
 
-from shasta_install_utility_common.products import ProductCatalog, ProductInstallException
+from shasta_install_utility_common.products import (ProductCatalog,
+                                                    ProductInstallException)
+
 from product_deletion_utility.parser.parser import create_parser
 
 
@@ -73,6 +75,7 @@ def delete(args):
     product_catalog.remove_product_docker_images(args.product, args.version)
     product_catalog.uninstall_product_hosted_repos(args.product, args.version)
     product_catalog.remove_product_entry(args.product, args.version)
+    product_catalog.remove_helm_charts(args.product, args.version)
 
     # TODO (CRAYSAT-1262): Remove CFS configuration layer as appropriate
 
