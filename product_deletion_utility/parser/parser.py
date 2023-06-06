@@ -47,10 +47,10 @@ def create_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         'action',
-        choices=['delete', 'uninstall', 'activate'],
+        choices=['delete', 'uninstall'],
         help='Specify the operation to execute on a product.'
     )
-        # The shasta-common-utility does not have 'product' as an argument.
+    # The shasta-common-utility does not have 'product' as an argument.
     parser.add_argument(
         'product',
         help='The name of the product to delete or activate.'
