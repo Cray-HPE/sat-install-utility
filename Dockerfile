@@ -50,6 +50,8 @@ RUN --mount=type=secret,id=netrc,target=/root/.netrc \
     python3 -m venv $VIRTUAL_ENV && \
     pip install --no-cache-dir -U pip && \
     pip install --no-cache-dir /deletion/ && \
+    pip install --no-cache-dir /deletion/cray_product_catalog-1.3.3-py3-none-any.whl \
+    pip install --no-cache-dir /deletion/shasta_install_utility_common-2.3.2-py3-none-any.whl \
     rm -rf /deletion/
 
 ENTRYPOINT ["/entrypoint.sh"]
