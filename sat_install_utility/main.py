@@ -136,8 +136,8 @@ def activate(args):
     cfs_results = cfs_activate_version(
         PRODUCT,
         product_version.version,
-        product_version.clone_url,
         PRODUCT_NCN_PLAYBOOK,
+        {'role': 'Management', 'subrole': 'Master'}
     )
     report_cfs_results(cfs_results)
 
