@@ -85,8 +85,8 @@ class TestActivateUninstall(unittest.TestCase):
         self.mock_cfs_activate.assert_called_once_with(
             'sat',
             self.mock_product.version,
-            self.mock_product.clone_url,
             'sat-ncn.yml',
+            {'role': 'Management', 'subrole': 'Master'}
         )
 
     def test_uninstall_success(self):
