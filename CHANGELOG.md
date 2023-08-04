@@ -25,6 +25,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.2] - 2023-08-04
+
+### Changed
+- Upgraded to use version 4.0 of cfs-config-util as a dependency.
+- Upgraded for compatibility with PyYAML 6.0 to fix build problems.
+- Refreshed all locked dependencies.
+
 ## [1.6.1] - 2023-06-20
 
 ### Security
