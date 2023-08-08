@@ -1,5 +1,3 @@
-#!/bin/bash
-#
 # MIT License
 #
 # (C) Copyright 2021-2023 Hewlett Packard Enterprise Development LP
@@ -22,7 +20,15 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
+"""
+Contains constant values for product-deletion-utility
+"""
+from nexusctl.common import DEFAULT_DOCKER_REGISTRY_API_BASE_URL
+from nexusctl.common import DEFAULT_NEXUS_API_BASE_URL
 
-base_dir=$(dirname "$0")
-source product-deletion-utility-venv/bin/activate
-#$base_dir/runUnitTest.sh
+DEFAULT_DOCKER_URL = DEFAULT_DOCKER_REGISTRY_API_BASE_URL
+DEFAULT_NEXUS_URL = DEFAULT_NEXUS_API_BASE_URL
+NEXUS_CREDENTIALS_SECRET_NAME = 'nexus-admin-credential'
+NEXUS_CREDENTIALS_SECRET_NAMESPACE = 'nexus'
+PRODUCT_CATALOG_CONFIG_MAP_NAME = 'cray-product-catalog'
+PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE = 'services'

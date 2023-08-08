@@ -44,13 +44,17 @@ RUN --mount=type=secret,id=ARTIFACTORY_READONLY_USER --mount=type=secret,id=ARTI
 
 # TODO: stop pulling from internal artifactory when nexusctl is open source.
 ARG PIP_EXTRA_INDEX_URL="https://arti.hpc.amslabs.hpecorp.net/artifactory/internal-pip-stable-local/ \
-    https://artifactory.algol60.net/artifactory/csm-python-modules/simple"
+    https://artifactory.algol60.net/artifactory/csm-python-modules/simple/ \
+    https://artifactory.algol60.net/artifactory/csm-python-modules/unstable"
 
 # RUN does not support ENVs, so specify INSTALLDIR explicitly.
 RUN --mount=type=secret,id=netrc,target=/root/.netrc \
     python3 -m venv $VIRTUAL_ENV && \
     pip install --no-cache-dir -U pip && \
     pip install --no-cache-dir /deletion/ && \
-    rm -rf /deletion/
+    rm -rf /deletion/ && \
+    # install kubectl
+    curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl" && \
+    chmod +x ./kubectl && mv ./kubectl /usr/local/bin/kubectl
 
 ENTRYPOINT ["/entrypoint.sh"]
