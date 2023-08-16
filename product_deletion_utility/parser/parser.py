@@ -33,8 +33,10 @@ from product_deletion_utility.components.constants import (
     DEFAULT_NEXUS_URL,
     DEFAULT_DOCKER_URL,
     PRODUCT_CATALOG_CONFIG_MAP_NAME,
-    PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE
+    PRODUCT_CATALOG_CONFIG_MAP_NAMESPACE,
+    DEFAULT_LOG_DIR
 )
+
 
 def create_parser():
     """Create an argument parser for this command.
@@ -63,6 +65,18 @@ def create_parser():
         help='Override the base URL of the Docker registry.',
         default=DEFAULT_DOCKER_URL,
     )
+    parser.add_argument(
+        '-d', '--dry-run',
+        help='Lists the components that would be deleted for the provided product:version',
+        default=False,
+        type=lambda x: (str(x).lower() == 'true')
+    )
+    parser.add_argument(
+        '--log-file',
+        help='Log file name for file based logging.',
+        default=DEFAULT_LOG_DIR,
+    )
+
     product_catalog_group = parser.add_argument_group('product-catalog')
     product_catalog_group.add_argument(
         '--product-catalog-name',
